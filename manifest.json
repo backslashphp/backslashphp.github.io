@@ -1,14 +1,14 @@
 {
   "name": "Backslash PHP Developer Guide",
   "short_name": "Backslash PHP Developer Guide",
-  "start_url": "/backslash/",
-  "scope": "/backslash/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/backslash/favicon.svg",
+      "src": "/favicon.svg",
       "sizes": "512x512"
     }
   ]
