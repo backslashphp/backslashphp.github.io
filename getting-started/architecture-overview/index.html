@@ -1,0 +1,156 @@
+<!doctype html><html lang=en-ca dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Architecture Overview#
+Backslash is designed around the core principles of event sourcing and CQRS. Its modular, lightweight, and
+framework-agnostic architecture allows for gradual adoption or integration into existing systems.
+Core components are provided by Backslash and handle the infrastructure behind event sourcing and CQRS.
+Application components are written by the developer to implement use cases and domain behavior.
+
+  
+      
+          Component
+          Core
+          Application
+          Role
+      
+  
+  
+      
+          Events
+          
+          ✓
+          Represent facts that have occurred within the system.
+      
+      
+          Models
+          
+          ✓
+          Replay events to hold current state and make decisions that record new events.
+      
+      
+          Queries
+          
+          ✓
+          Define how to retrieve past events relevant to a model.
+      
+      
+          Repository
+          ✓
+          
+          Persists model changes to the EventStore and publishes new events on the EventBus.
+      
+      
+          EventNameResolver
+          ✓
+          
+          Converts event FQCNs to short names and vice versa.
+      
+      
+          EventStore
+          ✓
+          
+          Stores events as an append-only, queryable log.
+      
+      
+          EventBus
+          ✓
+          
+          Delivers published events to event handlers.
+      
+      
+          Event handlers
+          
+          ✓
+          Respond to events to update projections or trigger side effects.
+      
+      
+          Projections
+          
+          ✓
+          Read-optimized views of the system&rsquo;s current state.
+      
+      
+          ProjectionStore
+          ✓
+          
+          Persists and retrieves projections.
+      
+      
+          Commands
+          
+          ✓
+          Express an intention or request to perform an operation on the system.
+      
+      
+          Command handlers
+          
+          ✓
+          Contain the logic to process commands and update the system accordingly.
+      
+      
+          Dispatcher
+          ✓
+          
+          Routes commands to their respective handlers.
+      
+      
+          Scenario
+          ✓
+          
+          Provides helpers for writing BDD-style tests using PHPUnit.
+      
+      
+          Testing scenarios
+          
+          ✓
+          Define given/when/then test flows using the Scenario test helpers.
+      
+      
+          PdoProxy
+          ✓
+          
+          Delays the creation of a PDO connection until it&rsquo;s needed.
+      
+      
+          Storage adapters
+          ✓
+          
+          Provide PDO-based persistence for EventStore and ProjectionStore.
+      
+      
+          Serializer
+          ✓
+          
+          Handles the serialization and deserialization of events and projections.
+      
+      
+          Middlewares
+          ✓
+          ✓
+          Add custom logic around core components operations.
+      
+      
+          Stream enrichers
+          
+          ✓
+          Modify or enhance events going through EventStore and EventBus.
+      
+  
+
+Understanding how it works#
+Backslash separates write operations (commands) from read operations (queries) using the CQRS pattern. The write side
+and read side operate independently, connected only through events."><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://backslashphp.github.io/backslash/getting-started/architecture-overview/"><meta property="og:site_name" content="Backslash PHP Developer Guide"><meta property="og:title" content="Architecture Overview"><meta property="og:description" content="Architecture Overview# Backslash is designed around the core principles of event sourcing and CQRS. Its modular, lightweight, and framework-agnostic architecture allows for gradual adoption or integration into existing systems.
+Core components are provided by Backslash and handle the infrastructure behind event sourcing and CQRS.
+Application components are written by the developer to implement use cases and domain behavior.
+Component Core Application Role Events ✓ Represent facts that have occurred within the system. Models ✓ Replay events to hold current state and make decisions that record new events. Queries ✓ Define how to retrieve past events relevant to a model. Repository ✓ Persists model changes to the EventStore and publishes new events on the EventBus. EventNameResolver ✓ Converts event FQCNs to short names and vice versa. EventStore ✓ Stores events as an append-only, queryable log. EventBus ✓ Delivers published events to event handlers. Event handlers ✓ Respond to events to update projections or trigger side effects. Projections ✓ Read-optimized views of the system’s current state. ProjectionStore ✓ Persists and retrieves projections. Commands ✓ Express an intention or request to perform an operation on the system. Command handlers ✓ Contain the logic to process commands and update the system accordingly. Dispatcher ✓ Routes commands to their respective handlers. Scenario ✓ Provides helpers for writing BDD-style tests using PHPUnit. Testing scenarios ✓ Define given/when/then test flows using the Scenario test helpers. PdoProxy ✓ Delays the creation of a PDO connection until it’s needed. Storage adapters ✓ Provide PDO-based persistence for EventStore and ProjectionStore. Serializer ✓ Handles the serialization and deserialization of events and projections. Middlewares ✓ ✓ Add custom logic around core components operations. Stream enrichers ✓ Modify or enhance events going through EventStore and EventBus. Understanding how it works# Backslash separates write operations (commands) from read operations (queries) using the CQRS pattern. The write side and read side operate independently, connected only through events."><meta property="og:locale" content="en_ca"><meta property="og:type" content="article"><meta property="article:section" content="getting-started"><meta property="article:modified_time" content="2025-11-11T17:09:05-05:00"><title>Architecture Overview | Backslash PHP Developer Guide</title><link rel=icon href=/backslash/favicon.png><link rel=manifest href=/backslash/manifest.json><link rel=canonical href=https://backslashphp.github.io/backslash/getting-started/architecture-overview/><link rel=stylesheet href=/backslash/book.min.c0e41de750417a94c4724981669dbe7955cfa422e1b2a84d4d2ac5e7d4a300f2.css integrity="sha256-wOQd51BBepTEckmBZp2+eVXPpCLhsqhNTSrF59SjAPI=" crossorigin=anonymous><script defer src=/backslash/fuse.min.js></script><script defer src=/backslash/en.search.min.bf5cf25dfd21948ac026e92ebfbb526af7dc35e848feb1e5549f4f2ff0904a2c.js integrity="sha256-v1zyXf0hlIrAJukuv7tSavfcNehI/rHlVJ9PL/CQSiw=" crossorigin=anonymous></script></head><body dir=ltr class="book-kind-page book-type-getting-started"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/backslash/><span>Backslash PHP Developer Guide</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=https://github.com/backslashphp/backslash target=_blank rel=noopener>Source code</a></li><li><a href=https://github.com/backslashphp/demo target=_blank rel=noopener>Demo application</a></li></ul><ul><li class=book-section-flat><a>Getting Started</a><ul><li><a href=/backslash/getting-started/introduction/>Introduction</a></li><li><a href=/backslash/getting-started/architecture-overview/ class=active>Architecture Overview</a></li><li><a href=/backslash/getting-started/quick-start-guide/>Quick Start Guide</a></li></ul></li><li class=book-section-flat><a>Event Sourcing</a><ul><li><a href=/backslash/event-sourcing/understanding-event-sourcing/>Understanding Event Sourcing</a></li><li><a href=/backslash/event-sourcing/defining-events/>Defining Events</a></li><li><a href=/backslash/event-sourcing/querying-events/>Querying Events</a></li><li><a href=/backslash/event-sourcing/building-models/>Building Models</a></li></ul></li><li class=book-section-flat><a>Commands and Projections (CQRS)</a><ul><li><a href=/backslash/cqrs/understanding-cqrs/>Understanding CQRS</a></li><li><a href=/backslash/cqrs/dispatching-commands/>Dispatching Commands</a></li><li><a href=/backslash/cqrs/reacting-with-event-handlers/>Reacting with Event Handlers</a></li><li><a href=/backslash/cqrs/building-projections/>Building Projections</a></li></ul></li><li class=book-section-flat><a>Testing Your Application</a><ul><li><a href=/backslash/testing/setting-up-tests/>Setting Up Tests</a></li><li><a href=/backslash/testing/writing-test-scenarios/>Writing Test Scenarios</a></li></ul></li><li class=book-section-flat><a>Customization</a><ul><li><a href=/backslash/customization/extending-with-middleware/>Extending with Middleware</a></li><li><a href=/backslash/customization/enriching-event-streams/>Enriching Event Streams</a></li></ul></li><li class=book-section-flat><a>Application Setup</a><ul><li><a href=/backslash/application-setup/defining-services/>Defining Services</a></li><li><a href=/backslash/application-setup/registering-handlers/>Registering Handlers</a></li><li><a href=/backslash/application-setup/using-the-bootstrap-file/>Using the Bootstrap File</a></li></ul></li><li class=book-section-flat><a>Maintenance</a><ul><li><a href=/backslash/maintenance/rebuilding-projections/>Rebuilding Projections</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/backslash/icons/menu.svg class=book-icon alt=Menu></label><h3>Architecture Overview</h3><label for=toc-control><img src=/backslash/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#understanding-how-it-works>Understanding how it works</a><ul><li><a href=#write-side-flow>Write side flow</a></li><li><a href=#read-side-flow>Read side flow</a></li></ul></li><li><a href=#extensibility>Extensibility</a></li><li><a href=#handling-concurrency>Handling concurrency</a></li><li><a href=#whats-not-included>What&rsquo;s not included</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=architecture-overview>Architecture Overview<a class=anchor href=#architecture-overview>#</a></h1><p>Backslash is designed around the core principles of event sourcing and CQRS. Its modular, lightweight, and
+framework-agnostic architecture allows for gradual adoption or integration into existing systems.</p><p><strong>Core components</strong> are provided by Backslash and handle the infrastructure behind event sourcing and CQRS.</p><p><strong>Application components</strong> are written by the developer to implement use cases and domain behavior.</p><table><thead><tr><th>Component</th><th style=text-align:center>Core</th><th style=text-align:center>Application</th><th>Role</th></tr></thead><tbody><tr><td>Events</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Represent facts that have occurred within the system.</td></tr><tr><td>Models</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Replay events to hold current state and make decisions that record new events.</td></tr><tr><td>Queries</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Define how to retrieve past events relevant to a model.</td></tr><tr><td><code>Repository</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Persists model changes to the <code>EventStore</code> and publishes new events on the <code>EventBus</code>.</td></tr><tr><td><code>EventNameResolver</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Converts event FQCNs to short names and vice versa.</td></tr><tr><td><code>EventStore</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Stores events as an append-only, queryable log.</td></tr><tr><td><code>EventBus</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Delivers published events to event handlers.</td></tr><tr><td>Event handlers</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Respond to events to update projections or trigger side effects.</td></tr><tr><td>Projections</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Read-optimized views of the system&rsquo;s current state.</td></tr><tr><td><code>ProjectionStore</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Persists and retrieves projections.</td></tr><tr><td>Commands</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Express an intention or request to perform an operation on the system.</td></tr><tr><td>Command handlers</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Contain the logic to process commands and update the system accordingly.</td></tr><tr><td><code>Dispatcher</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Routes commands to their respective handlers.</td></tr><tr><td><code>Scenario</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Provides helpers for writing BDD-style tests using PHPUnit.</td></tr><tr><td>Testing scenarios</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Define given/when/then test flows using the <code>Scenario</code> test helpers.</td></tr><tr><td><code>PdoProxy</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Delays the creation of a PDO connection until it&rsquo;s needed.</td></tr><tr><td>Storage adapters</td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Provide PDO-based persistence for <code>EventStore</code> and <code>ProjectionStore</code>.</td></tr><tr><td><code>Serializer</code></td><td style=text-align:center>✓</td><td style=text-align:center></td><td>Handles the serialization and deserialization of events and projections.</td></tr><tr><td>Middlewares</td><td style=text-align:center>✓</td><td style=text-align:center>✓</td><td>Add custom logic around core components operations.</td></tr><tr><td>Stream enrichers</td><td style=text-align:center></td><td style=text-align:center>✓</td><td>Modify or enhance events going through <code>EventStore</code> and <code>EventBus</code>.</td></tr></tbody></table><h2 id=understanding-how-it-works>Understanding how it works<a class=anchor href=#understanding-how-it-works>#</a></h2><p>Backslash separates write operations (commands) from read operations (queries) using the CQRS pattern. The write side
+and read side operate independently, connected only through events.</p><h3 id=write-side-flow>Write side flow<a class=anchor href=#write-side-flow>#</a></h3><p>When you execute a command, here&rsquo;s what happens:</p><ol><li><strong>Command dispatch</strong>: The <code>Dispatcher</code> receives a command and routes it to the registered command handler</li><li><strong>Query building</strong>: The handler builds a query to determine which events are needed by the model</li><li><strong>Event loading</strong>: The <code>Repository</code> fetches matching events from the <code>EventStore</code></li><li><strong>State reconstruction</strong>: Events are replayed into the model to rebuild its current state</li><li><strong>Business decision</strong>: The model executes business logic and records new events</li><li><strong>Event persistence</strong>: The <code>Repository</code> appends new events to the <code>EventStore</code></li><li><strong>Event publishing</strong>: New events are published to the <code>EventBus</code></li></ol><h3 id=read-side-flow>Read side flow<a class=anchor href=#read-side-flow>#</a></h3><p>When events are published, the read side reacts:</p><ol><li><strong>Event notification</strong>: The <code>EventBus</code> delivers events to subscribed event handlers</li><li><strong>Projection update</strong>: Event handlers load projections from the <code>ProjectionStore</code></li><li><strong>State modification</strong>: Projections are updated based on event data</li><li><strong>Projection persistence</strong>: Updated projections are stored back to the <code>ProjectionStore</code></li></ol><p>This separation ensures that complex business rules don&rsquo;t complicate queries, and query optimization doesn&rsquo;t constrain
+domain logic.</p><h2 id=extensibility>Extensibility<a class=anchor href=#extensibility>#</a></h2><p>Backslash provides two mechanisms for extending functionality:</p><p><strong>Middlewares</strong> wrap core operations (command dispatch, event storage, projection updates) to add cross-cutting concerns
+like logging, validation, or transactions.</p><p><strong>Stream enrichers</strong> modify events as they flow through the system, adding metadata such as correlation IDs, user
+context, or timestamps.</p><h2 id=handling-concurrency>Handling concurrency<a class=anchor href=#handling-concurrency>#</a></h2><p>Backslash uses optimistic concurrency control to prevent race conditions when writing events to the EventStore. The
+<code>PdoEventStoreAdapter</code> enforces this using a conditional append in SQL that checks the expected number of events in a
+stream before appending new ones. If another process has modified the stream in the meantime, a concurrency exception is
+thrown, allowing you to retry the operation with the latest state.</p><h2 id=whats-not-included>What&rsquo;s not included<a class=anchor href=#whats-not-included>#</a></h2><p>Backslash focuses exclusively on event sourcing and CQRS infrastructure. It intentionally does not provide:</p><ul><li>HTTP routing or web framework components</li><li>User interface frameworks or templating</li><li>Process managers or sagas for long-running workflows</li><li>Message queue integration (though you can add this via middleware)</li><li>Authentication or authorization mechanisms</li><li>Database migration tools</li></ul><p>These concerns are best handled by your chosen framework or dedicated libraries, allowing Backslash to remain
+framework-agnostic and focused on its core purpose.</p><hr></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div></div><div></div></div><div class="flex flex-wrap justify-between"><span><a href=/backslash/getting-started/introduction/ class="flex align-center"><img src=/backslash/icons/backward.svg class=book-icon alt=Previous title=Introduction>
+<span>Introduction</span>
+</a></span><span><a href=/backslash/getting-started/quick-start-guide/ class="flex align-center"><span>Quick Start Guide</span>
+<img src=/backslash/icons/forward.svg class=book-icon alt=Next title="Quick Start Guide"></a></span></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#understanding-how-it-works>Understanding how it works</a><ul><li><a href=#write-side-flow>Write side flow</a></li><li><a href=#read-side-flow>Read side flow</a></li></ul></li><li><a href=#extensibility>Extensibility</a></li><li><a href=#handling-concurrency>Handling concurrency</a></li><li><a href=#whats-not-included>What&rsquo;s not included</a></li></ul></nav></div></aside></main></body></html>

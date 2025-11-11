@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Commands and Projections (CQRS) on Backslash PHP Developer Guide</title><link>https://backslashphp.github.io/backslash/cqrs/</link><description>Recent content in Commands and Projections (CQRS) on Backslash PHP Developer Guide</description><generator>Hugo</generator><language>en-ca</language><atom:link href="https://backslashphp.github.io/backslash/cqrs/index.xml" rel="self" type="application/rss+xml"/><item><title>Understanding CQRS</title><link>https://backslashphp.github.io/backslash/cqrs/understanding-cqrs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/cqrs/understanding-cqrs/</guid><description>&lt;h1 id="understanding-cqrs"&gt;Understanding CQRS&lt;a class="anchor" href="#understanding-cqrs"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Command Query Responsibility Segregation (CQRS) is a pattern that separates read and write operations into distinct
+models. Instead of using the same model for both updates and queries, CQRS uses different models optimized for their
+specific purposes.&lt;/p&gt;
+&lt;h2 id="separating-write-and-read-sides"&gt;Separating write and read sides&lt;a class="anchor" href="#separating-write-and-read-sides"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Write side (Commands):&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Processes commands that express intent to change state&lt;/li&gt;
+&lt;li&gt;Uses models that enforce business rules&lt;/li&gt;
+&lt;li&gt;Records events when operations succeed&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Read side (Queries):&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Provides optimized views of current state&lt;/li&gt;
+&lt;li&gt;Uses projections denormalized for specific queries&lt;/li&gt;
+&lt;li&gt;Updated by reacting to events from the write side&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In Backslash:&lt;/p&gt;</description></item><item><title>Dispatching Commands</title><link>https://backslashphp.github.io/backslash/cqrs/dispatching-commands/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/cqrs/dispatching-commands/</guid><description>&lt;h1 id="dispatching-commands"&gt;Dispatching Commands&lt;a class="anchor" href="#dispatching-commands"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Commands represent intentions to change the system&amp;rsquo;s state. Unlike events that describe what happened, commands express
+what should happen. They carry the information needed to make a business decision and are the entry points for all write
+operations.&lt;/p&gt;
+&lt;p&gt;Commands are dispatched through a &lt;code&gt;Dispatcher&lt;/code&gt; that routes them to their corresponding handlers. Command handlers
+coordinate whatever operations are necessary to fulfill the command&amp;rsquo;s intent.&lt;/p&gt;
+&lt;h2 id="defining-commands"&gt;Defining commands&lt;a class="anchor" href="#defining-commands"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Commands are simple data transfer objects with no behavior. They don&amp;rsquo;t need to implement any interface; they&amp;rsquo;re just
+plain PHP classes that carry data:&lt;/p&gt;</description></item><item><title>Reacting with Event Handlers</title><link>https://backslashphp.github.io/backslash/cqrs/reacting-with-event-handlers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/cqrs/reacting-with-event-handlers/</guid><description>&lt;h1 id="reacting-with-event-handlers"&gt;Reacting with Event Handlers&lt;a class="anchor" href="#reacting-with-event-handlers"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Event handlers respond to events by updating projections, triggering side effects, or integrating with external systems.
+They subscribe to specific event types and execute synchronously when those events are published.&lt;/p&gt;
+&lt;h2 id="creating-event-handlers"&gt;Creating event handlers&lt;a class="anchor" href="#creating-event-handlers"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Event handlers implement &lt;code&gt;EventHandlerInterface&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-php" data-lang="php"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;interface&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;EventHandlerInterface&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;function&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;handle&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;RecordedEvent&lt;/span&gt; $recordedEvent)&lt;span style="color:#f92672"&gt;:&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;void&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Use &lt;code&gt;EventHandlerTrait&lt;/code&gt; to automatically route events to methods based on class names:&lt;/p&gt;</description></item><item><title>Building Projections</title><link>https://backslashphp.github.io/backslash/cqrs/building-projections/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/cqrs/building-projections/</guid><description>&lt;h1 id="building-projections"&gt;Building Projections&lt;a class="anchor" href="#building-projections"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Projections are read-optimized views of your system&amp;rsquo;s state. Unlike Models, which are rebuilt from events to make
+decisions, projections are designed specifically for querying. They represent the read side of your CQRS architecture.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Projections&lt;/strong&gt; are data structures (read models) that represent the current state; &lt;strong&gt;projectors&lt;/strong&gt; are event handlers
+that update these projections when events occur. This separation keeps projection logic organized and testable.&lt;/p&gt;
+&lt;p&gt;Projections work with the &lt;code&gt;ProjectionStore&lt;/code&gt;, which handles their persistence and retrieval. We&amp;rsquo;ll cover the
+&lt;code&gt;ProjectionStore&lt;/code&gt; in detail later in this section.&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,218 @@
+<!doctype html><html lang=en-ca dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='Setting Up Tests#
+Testing event-sourced applications requires specific infrastructure setup. This section shows how to configure PHPUnit
+and create a base test case for your Backslash application.
+Installing PHPUnit#
+Add PHPUnit to your project:
+
+
+1
+
+
+composer require --dev phpunit/phpunit
+
+Creating phpunit.xml#
+Create a phpunit.xml configuration file in your project root:
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="Application Tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="TESTING" value="true"/>
+        <env name="PDO_DSN" value="sqlite:memory:"/>
+    </php>
+</phpunit>
+
+Creating a base test case#
+Create an abstract base test case that sets up the infrastructure components needed for testing. The primary goal is to
+instantiate a Scenario object, which will be used by test scenarios explained
+in section 13.'><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://backslashphp.github.io/backslash/testing/setting-up-tests/"><meta property="og:site_name" content="Backslash PHP Developer Guide"><meta property="og:title" content="Setting Up Tests"><meta property="og:description" content='Setting Up Tests# Testing event-sourced applications requires specific infrastructure setup. This section shows how to configure PHPUnit and create a base test case for your Backslash application.
+Installing PHPUnit# Add PHPUnit to your project:
+1 composer require --dev phpunit/phpunit Creating phpunit.xml# Create a phpunit.xml configuration file in your project root:
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 <?xml version="1.0" encoding="UTF-8"?> <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" verbose="true"> <testsuites> <testsuite name="Application Tests"> <directory>tests</directory> </testsuite> </testsuites> <php> <env name="TESTING" value="true"/> <env name="PDO_DSN" value="sqlite:memory:"/> </php> </phpunit> Creating a base test case# Create an abstract base test case that sets up the infrastructure components needed for testing. The primary goal is to instantiate a Scenario object, which will be used by test scenarios explained in section 13.'><meta property="og:locale" content="en_ca"><meta property="og:type" content="article"><meta property="article:section" content="testing"><meta property="article:modified_time" content="2025-11-11T17:09:05-05:00"><title>Setting Up Tests | Backslash PHP Developer Guide</title><link rel=icon href=/backslash/favicon.png><link rel=manifest href=/backslash/manifest.json><link rel=canonical href=https://backslashphp.github.io/backslash/testing/setting-up-tests/><link rel=stylesheet href=/backslash/book.min.c0e41de750417a94c4724981669dbe7955cfa422e1b2a84d4d2ac5e7d4a300f2.css integrity="sha256-wOQd51BBepTEckmBZp2+eVXPpCLhsqhNTSrF59SjAPI=" crossorigin=anonymous><script defer src=/backslash/fuse.min.js></script><script defer src=/backslash/en.search.min.bf5cf25dfd21948ac026e92ebfbb526af7dc35e848feb1e5549f4f2ff0904a2c.js integrity="sha256-v1zyXf0hlIrAJukuv7tSavfcNehI/rHlVJ9PL/CQSiw=" crossorigin=anonymous></script></head><body dir=ltr class="book-kind-page book-type-testing"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/backslash/><span>Backslash PHP Developer Guide</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=https://github.com/backslashphp/backslash target=_blank rel=noopener>Source code</a></li><li><a href=https://github.com/backslashphp/demo target=_blank rel=noopener>Demo application</a></li></ul><ul><li class=book-section-flat><a>Getting Started</a><ul><li><a href=/backslash/getting-started/introduction/>Introduction</a></li><li><a href=/backslash/getting-started/architecture-overview/>Architecture Overview</a></li><li><a href=/backslash/getting-started/quick-start-guide/>Quick Start Guide</a></li></ul></li><li class=book-section-flat><a>Event Sourcing</a><ul><li><a href=/backslash/event-sourcing/understanding-event-sourcing/>Understanding Event Sourcing</a></li><li><a href=/backslash/event-sourcing/defining-events/>Defining Events</a></li><li><a href=/backslash/event-sourcing/querying-events/>Querying Events</a></li><li><a href=/backslash/event-sourcing/building-models/>Building Models</a></li></ul></li><li class=book-section-flat><a>Commands and Projections (CQRS)</a><ul><li><a href=/backslash/cqrs/understanding-cqrs/>Understanding CQRS</a></li><li><a href=/backslash/cqrs/dispatching-commands/>Dispatching Commands</a></li><li><a href=/backslash/cqrs/reacting-with-event-handlers/>Reacting with Event Handlers</a></li><li><a href=/backslash/cqrs/building-projections/>Building Projections</a></li></ul></li><li class=book-section-flat><a>Testing Your Application</a><ul><li><a href=/backslash/testing/setting-up-tests/ class=active>Setting Up Tests</a></li><li><a href=/backslash/testing/writing-test-scenarios/>Writing Test Scenarios</a></li></ul></li><li class=book-section-flat><a>Customization</a><ul><li><a href=/backslash/customization/extending-with-middleware/>Extending with Middleware</a></li><li><a href=/backslash/customization/enriching-event-streams/>Enriching Event Streams</a></li></ul></li><li class=book-section-flat><a>Application Setup</a><ul><li><a href=/backslash/application-setup/defining-services/>Defining Services</a></li><li><a href=/backslash/application-setup/registering-handlers/>Registering Handlers</a></li><li><a href=/backslash/application-setup/using-the-bootstrap-file/>Using the Bootstrap File</a></li></ul></li><li class=book-section-flat><a>Maintenance</a><ul><li><a href=/backslash/maintenance/rebuilding-projections/>Rebuilding Projections</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/backslash/icons/menu.svg class=book-icon alt=Menu></label><h3>Setting Up Tests</h3><label for=toc-control><img src=/backslash/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#installing-phpunit>Installing PHPUnit</a></li><li><a href=#creating-phpunitxml>Creating phpunit.xml</a></li><li><a href=#creating-a-base-test-case>Creating a base test case</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=setting-up-tests>Setting Up Tests<a class=anchor href=#setting-up-tests>#</a></h1><p>Testing event-sourced applications requires specific infrastructure setup. This section shows how to configure PHPUnit
+and create a base test case for your Backslash application.</p><h2 id=installing-phpunit>Installing PHPUnit<a class=anchor href=#installing-phpunit>#</a></h2><p>Add PHPUnit to your project:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>composer require --dev phpunit/phpunit</span></span></code></pre></td></tr></table></div></div><h2 id=creating-phpunitxml>Creating phpunit.xml<a class=anchor href=#creating-phpunitxml>#</a></h2><p>Create a <code>phpunit.xml</code> configuration file in your project root:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-xml data-lang=xml><span style=display:flex><span><span style=color:#75715e>&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;phpunit</span> <span style=color:#a6e22e>xmlns:xsi=</span><span style=color:#e6db74>&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>xsi:noNamespaceSchemaLocation=</span><span style=color:#e6db74>&#34;vendor/phpunit/phpunit/phpunit.xsd&#34;</span>
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>bootstrap=</span><span style=color:#e6db74>&#34;vendor/autoload.php&#34;</span>
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>colors=</span><span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>         <span style=color:#a6e22e>verbose=</span><span style=color:#e6db74>&#34;true&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;testsuites&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;testsuite</span> <span style=color:#a6e22e>name=</span><span style=color:#e6db74>&#34;Application Tests&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;directory&gt;</span>tests<span style=color:#f92672>&lt;/directory&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;/testsuite&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/testsuites&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;php&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;env</span> <span style=color:#a6e22e>name=</span><span style=color:#e6db74>&#34;TESTING&#34;</span> <span style=color:#a6e22e>value=</span><span style=color:#e6db74>&#34;true&#34;</span><span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;env</span> <span style=color:#a6e22e>name=</span><span style=color:#e6db74>&#34;PDO_DSN&#34;</span> <span style=color:#a6e22e>value=</span><span style=color:#e6db74>&#34;sqlite:memory:&#34;</span><span style=color:#f92672>/&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/php&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;/phpunit&gt;</span></span></span></code></pre></td></tr></table></div></div><h2 id=creating-a-base-test-case>Creating a base test case<a class=anchor href=#creating-a-base-test-case>#</a></h2><p>Create an abstract base test case that sets up the infrastructure components needed for testing. The primary goal is to
+instantiate a <code>Scenario</code> object, which will be used by test scenarios explained
+in <a href=13-writing-test-scenarios.md>section 13</a>.</p><p>The way you obtain Backslash components depends heavily on how your application is structured. Most PHP applications
+use a dependency injection container. Here&rsquo;s an example using a PSR-11 container:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#f92672>&lt;?</span><span style=color:#a6e22e>php</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>declare</span>(<span style=color:#a6e22e>strict_types</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>namespace</span> <span style=color:#a6e22e>Tests</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\DispatcherInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventBus\EventBusInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\PdoEventStore\Config</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\PdoEventStore\Driver</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\ProjectionStore\ProjectionStoreInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\Scenario\AssertionsTrait</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\Scenario\Scenario</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>PDO</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>PHPUnit\Framework\TestCase</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>PHPUnitTestCase</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Psr\Container\ContainerInterface</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TestCase</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>PHPUnitTestCase</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>use</span> <span style=color:#a6e22e>AssertionsTrait</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>Scenario</span> $scenario;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>ContainerInterface</span> $container;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>setUp</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>parent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>setUp</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Bootstrap your DI container
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>require</span> <span style=color:#66d9ef>__DIR__</span> <span style=color:#f92672>.</span> <span style=color:#e6db74>&#39;/../bootstrap.php&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Get PDO SQLite instance – Make sure your DI container uses the PDO_DSN variable in phpunit.xml when running tests! 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        $pdo <span style=color:#f92672>=</span> $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>PDO</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Create table for the EventStore
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        $pdo<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>exec</span>(<span style=color:#a6e22e>Driver</span><span style=color:#f92672>::</span><span style=color:#a6e22e>SQLITE</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>buildCreateTableStatement</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Config</span>()));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Create Scenario instance with required dependencies
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>scenario</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Scenario</span>(
+</span></span><span style=display:flex><span>            $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventBusInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>),
+</span></span><span style=display:flex><span>            $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>DispatcherInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>),
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Your DI container must use the InMemoryProjectionStoreAdapter when running tests.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>ProjectionStoreInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>),
+</span></span><span style=display:flex><span>            $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventStoreInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>)
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Set up initial test data
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>createInitialTestData</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>createInitialTestData</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        $dispatcher <span style=color:#f92672>=</span> $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>container</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>DispatcherInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Dispatch commands to generate data used by test scenarios
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// Example: $dispatcher-&gt;dispatch(new RegisterUserCommand(&#39;user-1&#39;, &#39;John&#39;, &#39;Smith&#39;));
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>This base test case provides:</p><ul><li><strong>Container bootstrap</strong>: Loads the application&rsquo;s dependency injection container</li><li><strong>Database setup</strong>: Creates EventStore tables using the SQLite driver; <code>Driver::SQLITE</code> generates the appropriate
+CREATE TABLE statement, while <code>Config</code> allows customization of table and column names if needed</li><li><strong>In-memory SQLite</strong>: Fast and isolated; each test gets a fresh database without external dependencies</li><li><strong>Scenario instance</strong>: Ready-to-use <code>Scenario</code> with EventBus, Dispatcher, and ProjectionStore</li><li><strong>AssertionsTrait</strong>: Provides scenario-specific assertions like <code>assertPublishedEventsContain()</code>,
+<code>assertPublishedEventsCount()</code>, and <code>assertUpdatedProjectionsContain()</code>, which will be covered in section 13</li><li><strong>Initial test data</strong>: Optional <code>createInitialTestData()</code> method to set up common fixtures shared across tests; use
+this to create baseline data like system users or default configurations, avoiding duplication in individual tests</li></ul><hr></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div></div><div></div></div><div class="flex flex-wrap justify-between"><span><a href=/backslash/cqrs/building-projections/ class="flex align-center"><img src=/backslash/icons/backward.svg class=book-icon alt=Previous title="Building Projections">
+<span>Building Projections</span>
+</a></span><span><a href=/backslash/testing/writing-test-scenarios/ class="flex align-center"><span>Writing Test Scenarios</span>
+<img src=/backslash/icons/forward.svg class=book-icon alt=Next title="Writing Test Scenarios"></a></span></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#installing-phpunit>Installing PHPUnit</a></li><li><a href=#creating-phpunitxml>Creating phpunit.xml</a></li><li><a href=#creating-a-base-test-case>Creating a base test case</a></li></ul></nav></div></aside></main></body></html>

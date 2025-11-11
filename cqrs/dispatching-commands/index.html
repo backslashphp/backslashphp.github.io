@@ -1,0 +1,230 @@
+<!doctype html><html lang=en-ca dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Dispatching Commands#
+Commands represent intentions to change the system&rsquo;s state. Unlike events that describe what happened, commands express
+what should happen. They carry the information needed to make a business decision and are the entry points for all write
+operations.
+Commands are dispatched through a Dispatcher that routes them to their corresponding handlers. Command handlers
+coordinate whatever operations are necessary to fulfill the command&rsquo;s intent.
+Defining commands#
+Commands are simple data transfer objects with no behavior. They don&rsquo;t need to implement any interface; they&rsquo;re just
+plain PHP classes that carry data:"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://backslashphp.github.io/backslash/cqrs/dispatching-commands/"><meta property="og:site_name" content="Backslash PHP Developer Guide"><meta property="og:title" content="Dispatching Commands"><meta property="og:description" content="Dispatching Commands# Commands represent intentions to change the system’s state. Unlike events that describe what happened, commands express what should happen. They carry the information needed to make a business decision and are the entry points for all write operations.
+Commands are dispatched through a Dispatcher that routes them to their corresponding handlers. Command handlers coordinate whatever operations are necessary to fulfill the command’s intent.
+Defining commands# Commands are simple data transfer objects with no behavior. They don’t need to implement any interface; they’re just plain PHP classes that carry data:"><meta property="og:locale" content="en_ca"><meta property="og:type" content="article"><meta property="article:section" content="cqrs"><meta property="article:modified_time" content="2025-11-11T17:09:05-05:00"><title>Dispatching Commands | Backslash PHP Developer Guide</title><link rel=icon href=/backslash/favicon.png><link rel=manifest href=/backslash/manifest.json><link rel=canonical href=https://backslashphp.github.io/backslash/cqrs/dispatching-commands/><link rel=stylesheet href=/backslash/book.min.c0e41de750417a94c4724981669dbe7955cfa422e1b2a84d4d2ac5e7d4a300f2.css integrity="sha256-wOQd51BBepTEckmBZp2+eVXPpCLhsqhNTSrF59SjAPI=" crossorigin=anonymous><script defer src=/backslash/fuse.min.js></script><script defer src=/backslash/en.search.min.bf5cf25dfd21948ac026e92ebfbb526af7dc35e848feb1e5549f4f2ff0904a2c.js integrity="sha256-v1zyXf0hlIrAJukuv7tSavfcNehI/rHlVJ9PL/CQSiw=" crossorigin=anonymous></script></head><body dir=ltr class="book-kind-page book-type-cqrs"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/backslash/><span>Backslash PHP Developer Guide</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=https://github.com/backslashphp/backslash target=_blank rel=noopener>Source code</a></li><li><a href=https://github.com/backslashphp/demo target=_blank rel=noopener>Demo application</a></li></ul><ul><li class=book-section-flat><a>Getting Started</a><ul><li><a href=/backslash/getting-started/introduction/>Introduction</a></li><li><a href=/backslash/getting-started/architecture-overview/>Architecture Overview</a></li><li><a href=/backslash/getting-started/quick-start-guide/>Quick Start Guide</a></li></ul></li><li class=book-section-flat><a>Event Sourcing</a><ul><li><a href=/backslash/event-sourcing/understanding-event-sourcing/>Understanding Event Sourcing</a></li><li><a href=/backslash/event-sourcing/defining-events/>Defining Events</a></li><li><a href=/backslash/event-sourcing/querying-events/>Querying Events</a></li><li><a href=/backslash/event-sourcing/building-models/>Building Models</a></li></ul></li><li class=book-section-flat><a>Commands and Projections (CQRS)</a><ul><li><a href=/backslash/cqrs/understanding-cqrs/>Understanding CQRS</a></li><li><a href=/backslash/cqrs/dispatching-commands/ class=active>Dispatching Commands</a></li><li><a href=/backslash/cqrs/reacting-with-event-handlers/>Reacting with Event Handlers</a></li><li><a href=/backslash/cqrs/building-projections/>Building Projections</a></li></ul></li><li class=book-section-flat><a>Testing Your Application</a><ul><li><a href=/backslash/testing/setting-up-tests/>Setting Up Tests</a></li><li><a href=/backslash/testing/writing-test-scenarios/>Writing Test Scenarios</a></li></ul></li><li class=book-section-flat><a>Customization</a><ul><li><a href=/backslash/customization/extending-with-middleware/>Extending with Middleware</a></li><li><a href=/backslash/customization/enriching-event-streams/>Enriching Event Streams</a></li></ul></li><li class=book-section-flat><a>Application Setup</a><ul><li><a href=/backslash/application-setup/defining-services/>Defining Services</a></li><li><a href=/backslash/application-setup/registering-handlers/>Registering Handlers</a></li><li><a href=/backslash/application-setup/using-the-bootstrap-file/>Using the Bootstrap File</a></li></ul></li><li class=book-section-flat><a>Maintenance</a><ul><li><a href=/backslash/maintenance/rebuilding-projections/>Rebuilding Projections</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/backslash/icons/menu.svg class=book-icon alt=Menu></label><h3>Dispatching Commands</h3><label for=toc-control><img src=/backslash/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#defining-commands>Defining commands</a></li><li><a href=#naming-commands>Naming commands</a></li><li><a href=#creating-command-handlers>Creating command handlers</a></li><li><a href=#the-command-handler-workflow>The command handler workflow</a></li><li><a href=#registering-handlers>Registering handlers</a></li><li><a href=#adding-middleware>Adding middleware</a></li><li><a href=#best-practices>Best practices</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=dispatching-commands>Dispatching Commands<a class=anchor href=#dispatching-commands>#</a></h1><p>Commands represent intentions to change the system&rsquo;s state. Unlike events that describe what happened, commands express
+what should happen. They carry the information needed to make a business decision and are the entry points for all write
+operations.</p><p>Commands are dispatched through a <code>Dispatcher</code> that routes them to their corresponding handlers. Command handlers
+coordinate whatever operations are necessary to fulfill the command&rsquo;s intent.</p><h2 id=defining-commands>Defining commands<a class=anchor href=#defining-commands>#</a></h2><p>Commands are simple data transfer objects with no behavior. They don&rsquo;t need to implement any interface; they&rsquo;re just
+plain PHP classes that carry data:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#a6e22e>readonly</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>RegisterStudentCommand</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>__construct</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>string</span> $studentId,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>public</span> <span style=color:#a6e22e>string</span> $name,
+</span></span><span style=display:flex><span>    ) {
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>Mark commands as <code>readonly</code> to emphasize their immutability. Commands should never change once created.</p><h2 id=naming-commands>Naming commands<a class=anchor href=#naming-commands>#</a></h2><p>Command names should clearly express intent using imperative verbs:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#75715e>// Good: clear intent
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>RegisterStudentCommand</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>ChangeCourseCapacityCommand</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>SubscribeStudentToCourseCommand</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>UnsubscribeStudentFromCourseCommand</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Avoid: unclear or passive names
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>StudentCommand</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>CourseCapacityCommand</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>StudentCourseCommand</span></span></span></code></pre></td></tr></table></div></div><h2 id=creating-command-handlers>Creating command handlers<a class=anchor href=#creating-command-handlers>#</a></h2><p>Command handlers implement <code>HandlerInterface</code>:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>HandlerInterface</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>handle</span>(<span style=color:#a6e22e>object</span> $command)<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span>;
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>Use <code>HandleCommandTrait</code> to automatically route commands to methods based on class names:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\HandlerInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\HandleCommandTrait</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>StudentCommandHandler</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>HandlerInterface</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>use</span> <span style=color:#a6e22e>HandleCommandTrait</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>__construct</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>RepositoryInterface</span> $repository,
+</span></span><span style=display:flex><span>    ) {
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>handleRegisterStudentCommand</span>(
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>RegisterStudentCommand</span> $command,
+</span></span><span style=display:flex><span>    )<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span> {
+</span></span><span style=display:flex><span>        $query <span style=color:#f92672>=</span> <span style=color:#a6e22e>StudentRegistrationModel</span><span style=color:#f92672>::</span><span style=color:#a6e22e>buildQuery</span>($command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>studentId</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        $model <span style=color:#f92672>=</span> $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>repository</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>loadModel</span>(
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>StudentRegistrationModel</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            $query
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        $model<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>register</span>($command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>studentId</span>, $command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>name</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>repository</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>storeChanges</span>($model);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>The trait looks for methods named by prefixing <code>handle</code> to the command&rsquo;s short class name.</p><h2 id=the-command-handler-workflow>The command handler workflow<a class=anchor href=#the-command-handler-workflow>#</a></h2><p>A common pattern for command handlers working with models follows these steps:</p><ol><li><strong>Build the query</strong> to load relevant events</li><li><strong>Load the model</strong> from the Repository</li><li><strong>Execute business logic</strong> by calling decision methods</li><li><strong>Persist changes</strong> back to the Repository</li></ol><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>handleChangeCourseCapacityCommand</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ChangeCourseCapacityCommand</span> $command,
+</span></span><span style=display:flex><span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 1. Build query
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    $query <span style=color:#f92672>=</span> <span style=color:#a6e22e>CourseCapacityModel</span><span style=color:#f92672>::</span><span style=color:#a6e22e>buildQuery</span>($command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>courseId</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 2. Load model
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    $model <span style=color:#f92672>=</span> $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>repository</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>loadModel</span>(
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>CourseCapacityModel</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        $query
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 3. Execute business logic
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    $model<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>change</span>($command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>capacity</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 4. Persist changes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>repository</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>storeChanges</span>($model);
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>The Repository handles event replay, concurrency checks, event persistence, and event publishing. Command handlers
+coordinate operations.</p><p>However, command handlers are not limited to working with models. They can perform any operation needed to fulfill the
+command&rsquo;s intent. For example, a handler might call external services, send notifications, or perform system operations:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SystemCommandHandler</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>HandlerInterface</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>use</span> <span style=color:#a6e22e>HandleCommandTrait</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>__construct</span>(
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>MailerInterface</span> $mailer,
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>LoggerInterface</span> $logger,
+</span></span><span style=display:flex><span>    ) {
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>handleSendWelcomeEmailCommand</span>(
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SendWelcomeEmailCommand</span> $command,
+</span></span><span style=display:flex><span>    )<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span> {
+</span></span><span style=display:flex><span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>mailer</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>send</span>(
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>to</span><span style=color:#f92672>:</span> $command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>email</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>subject</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Welcome!&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>buildWelcomeMessage</span>($command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>name</span>)
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>logger</span><span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#39;Welcome email sent&#39;</span>, [
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;email&#39;</span> <span style=color:#f92672>=&gt;</span> $command<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>email</span>,
+</span></span><span style=display:flex><span>        ]);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>buildWelcomeMessage</span>(<span style=color:#a6e22e>string</span> $name)<span style=color:#f92672>:</span> <span style=color:#a6e22e>string</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Hello </span><span style=color:#e6db74>{</span>$name<span style=color:#e6db74>}</span><span style=color:#e6db74>, welcome to our platform!&#34;</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>The key is that handlers encapsulate the logic needed to execute a command, whether that involves models, external
+services, or any other operations.</p><h2 id=registering-handlers>Registering handlers<a class=anchor href=#registering-handlers>#</a></h2><p>Register command handlers with the Dispatcher during application bootstrap:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span>$dispatcher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>registerHandler</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>RegisterStudentCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>HandlerProxy</span>(<span style=color:#a6e22e>fn</span>() <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>StudentCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>))
+</span></span><span style=display:flex><span>);</span></span></code></pre></td></tr></table></div></div><h2 id=adding-middleware>Adding middleware<a class=anchor href=#adding-middleware>#</a></h2><p>Middleware wraps command dispatch to add cross-cutting concerns like logging, validation, or transactions:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span>$dispatcher <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Dispatcher</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Add transaction management
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$dispatcher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>addMiddleware</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ProjectionStoreTransactionCommandDispatcherMiddleware</span>($projectionStore)
+</span></span><span style=display:flex><span>);</span></span></code></pre></td></tr></table></div></div><p>Middleware executes in LIFO order. The last registered middleware wraps all previous ones.</p><h2 id=best-practices>Best practices<a class=anchor href=#best-practices>#</a></h2><p><strong>Keep commands simple.</strong> Commands should be data containers with no logic. All validation and business rules belong in
+models.</p><p><strong>Use descriptive command names.</strong> Command names should clearly express intent using action verbs.</p><p><strong>Group related commands.</strong> Commands that share dependencies or operate on related concepts can share a handler.</p><p><strong>Handle each command once.</strong> Each command class should map to exactly one handler method.</p><p><strong>Let exceptions propagate.</strong> Domain exceptions should propagate to the dispatcher where middleware can handle them
+consistently.</p><p><strong>Keep handlers focused.</strong> Command handlers should coordinate operations, not implement business logic. Business rules
+belong in models.</p><p><strong>Make commands serializable.</strong> Commands should only contain scalar types and arrays so they can be serialized for
+queuing or logging.</p><hr></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div></div><div></div></div><div class="flex flex-wrap justify-between"><span><a href=/backslash/cqrs/understanding-cqrs/ class="flex align-center"><img src=/backslash/icons/backward.svg class=book-icon alt=Previous title="Understanding CQRS">
+<span>Understanding CQRS</span>
+</a></span><span><a href=/backslash/cqrs/reacting-with-event-handlers/ class="flex align-center"><span>Reacting with Event Handlers</span>
+<img src=/backslash/icons/forward.svg class=book-icon alt=Next title="Reacting with Event Handlers"></a></span></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#defining-commands>Defining commands</a></li><li><a href=#naming-commands>Naming commands</a></li><li><a href=#creating-command-handlers>Creating command handlers</a></li><li><a href=#the-command-handler-workflow>The command handler workflow</a></li><li><a href=#registering-handlers>Registering handlers</a></li><li><a href=#adding-middleware>Adding middleware</a></li><li><a href=#best-practices>Best practices</a></li></ul></nav></div></aside></main></body></html>

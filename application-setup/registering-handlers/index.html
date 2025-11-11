@@ -1,0 +1,368 @@
+<!doctype html><html lang=en-ca dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Registering Handlers#
+The boot process registers commands with the dispatcher and events with the event bus, establishing the routing between
+messages and their handlers. This registration happens after service definitions are loaded but before the application
+handles any requests or executes commands.
+Understanding the boot process#
+The boot process consists of:
+
+Registering commands with command handlers in the dispatcher
+Registering events with projectors in the event bus
+Registering events with processors in the event bus (skipped during projection rebuilds)
+
+This registration should happen once during application startup."><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://backslashphp.github.io/backslash/application-setup/registering-handlers/"><meta property="og:site_name" content="Backslash PHP Developer Guide"><meta property="og:title" content="Registering Handlers"><meta property="og:description" content="Registering Handlers# The boot process registers commands with the dispatcher and events with the event bus, establishing the routing between messages and their handlers. This registration happens after service definitions are loaded but before the application handles any requests or executes commands.
+Understanding the boot process# The boot process consists of:
+Registering commands with command handlers in the dispatcher Registering events with projectors in the event bus Registering events with processors in the event bus (skipped during projection rebuilds) This registration should happen once during application startup."><meta property="og:locale" content="en_ca"><meta property="og:type" content="article"><meta property="article:section" content="application-setup"><meta property="article:modified_time" content="2025-11-11T17:09:05-05:00"><title>Registering Handlers | Backslash PHP Developer Guide</title><link rel=icon href=/backslash/favicon.png><link rel=manifest href=/backslash/manifest.json><link rel=canonical href=https://backslashphp.github.io/backslash/application-setup/registering-handlers/><link rel=stylesheet href=/backslash/book.min.c0e41de750417a94c4724981669dbe7955cfa422e1b2a84d4d2ac5e7d4a300f2.css integrity="sha256-wOQd51BBepTEckmBZp2+eVXPpCLhsqhNTSrF59SjAPI=" crossorigin=anonymous><script defer src=/backslash/fuse.min.js></script><script defer src=/backslash/en.search.min.bf5cf25dfd21948ac026e92ebfbb526af7dc35e848feb1e5549f4f2ff0904a2c.js integrity="sha256-v1zyXf0hlIrAJukuv7tSavfcNehI/rHlVJ9PL/CQSiw=" crossorigin=anonymous></script></head><body dir=ltr class="book-kind-page book-type-application-setup"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/backslash/><span>Backslash PHP Developer Guide</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=https://github.com/backslashphp/backslash target=_blank rel=noopener>Source code</a></li><li><a href=https://github.com/backslashphp/demo target=_blank rel=noopener>Demo application</a></li></ul><ul><li class=book-section-flat><a>Getting Started</a><ul><li><a href=/backslash/getting-started/introduction/>Introduction</a></li><li><a href=/backslash/getting-started/architecture-overview/>Architecture Overview</a></li><li><a href=/backslash/getting-started/quick-start-guide/>Quick Start Guide</a></li></ul></li><li class=book-section-flat><a>Event Sourcing</a><ul><li><a href=/backslash/event-sourcing/understanding-event-sourcing/>Understanding Event Sourcing</a></li><li><a href=/backslash/event-sourcing/defining-events/>Defining Events</a></li><li><a href=/backslash/event-sourcing/querying-events/>Querying Events</a></li><li><a href=/backslash/event-sourcing/building-models/>Building Models</a></li></ul></li><li class=book-section-flat><a>Commands and Projections (CQRS)</a><ul><li><a href=/backslash/cqrs/understanding-cqrs/>Understanding CQRS</a></li><li><a href=/backslash/cqrs/dispatching-commands/>Dispatching Commands</a></li><li><a href=/backslash/cqrs/reacting-with-event-handlers/>Reacting with Event Handlers</a></li><li><a href=/backslash/cqrs/building-projections/>Building Projections</a></li></ul></li><li class=book-section-flat><a>Testing Your Application</a><ul><li><a href=/backslash/testing/setting-up-tests/>Setting Up Tests</a></li><li><a href=/backslash/testing/writing-test-scenarios/>Writing Test Scenarios</a></li></ul></li><li class=book-section-flat><a>Customization</a><ul><li><a href=/backslash/customization/extending-with-middleware/>Extending with Middleware</a></li><li><a href=/backslash/customization/enriching-event-streams/>Enriching Event Streams</a></li></ul></li><li class=book-section-flat><a>Application Setup</a><ul><li><a href=/backslash/application-setup/defining-services/>Defining Services</a></li><li><a href=/backslash/application-setup/registering-handlers/ class=active>Registering Handlers</a></li><li><a href=/backslash/application-setup/using-the-bootstrap-file/>Using the Bootstrap File</a></li></ul></li><li class=book-section-flat><a>Maintenance</a><ul><li><a href=/backslash/maintenance/rebuilding-projections/>Rebuilding Projections</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/backslash/icons/menu.svg class=book-icon alt=Menu></label><h3>Registering Handlers</h3><label for=toc-control><img src=/backslash/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#understanding-the-boot-process>Understanding the boot process</a></li><li><a href=#defining-command-handler-mappings>Defining command handler mappings</a></li><li><a href=#defining-event-handler-mappings>Defining event handler mappings</a></li><li><a href=#using-handler-discovery>Using handler discovery</a></li><li><a href=#using-handlerproxy-and-eventhandlerproxy>Using HandlerProxy and EventHandlerProxy</a></li><li><a href=#registering-command-handlers>Registering command handlers</a></li><li><a href=#registering-event-handlers>Registering event handlers</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=registering-handlers>Registering Handlers<a class=anchor href=#registering-handlers>#</a></h1><p>The boot process registers commands with the dispatcher and events with the event bus, establishing the routing between
+messages and their handlers. This registration happens after service definitions are loaded but before the application
+handles any requests or executes commands.</p><h2 id=understanding-the-boot-process>Understanding the boot process<a class=anchor href=#understanding-the-boot-process>#</a></h2><p>The boot process consists of:</p><ol><li><strong>Registering commands</strong> with command handlers in the dispatcher</li><li><strong>Registering events</strong> with projectors in the event bus</li><li><strong>Registering events</strong> with processors in the event bus (skipped during projection rebuilds)</li></ol><p>This registration should happen once during application startup.</p><p>Command and event handler mappings are defined statically (typically as class constants) and used during the boot
+process to perform the actual registration.</p><h2 id=defining-command-handler-mappings>Defining command handler mappings<a class=anchor href=#defining-command-handler-mappings>#</a></h2><p>Define command handler mappings using an associative array:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>COMMAND_HANDLERS</span> <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>ChangeCourseCapacityCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>DefineCourseCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StudentCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>RegisterStudentCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>SubscriptionCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SubscribeStudentToCourseCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>UnsubscribeStudentFromCourseCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>];</span></span></code></pre></td></tr></table></div></div><p>Each command handler class maps to an array of command classes it handles.</p><p>Alternatively, implement a static <code>getHandledCommands()</code> method on each command handler to make the mapping explicit:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CourseCommandHandler</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getHandledCommands</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>array</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ChangeCourseCapacityCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>DefineCourseCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        ];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Handler methods...
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}</span></span></code></pre></td></tr></table></div></div><p>This approach makes each handler explicitly declare what it handles, eliminating the need for a centralized mapping
+array.</p><h2 id=defining-event-handler-mappings>Defining event handler mappings<a class=anchor href=#defining-event-handler-mappings>#</a></h2><p>Define event handler mappings, separating projectors from processors:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>PROJECTORS</span> <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseListProjector</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>CourseCapacityChangedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StudentListProjector</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentRegisteredEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span> <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>PROCESSORS</span> <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>NotificationProcessor</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>EmailProcessor</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span> <span style=color:#f92672>=&gt;</span> [
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StudentRegisteredEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    ],
+</span></span><span style=display:flex><span>];</span></span></code></pre></td></tr></table></div></div><p>Maintain separate lists for projectors and processors to enable selective registration.</p><p>Alternatively, implement a static <code>getSubscribedEvents()</code> method on each event handler to make the mapping explicit:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CourseListProjector</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSubscribedEvents</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>array</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>CourseCapacityChangedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        ];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Handler methods...
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}</span></span></code></pre></td></tr></table></div></div><p>This approach makes each handler explicitly declare what events it subscribes to, eliminating the need for centralized
+mapping arrays.</p><h2 id=using-handler-discovery>Using handler discovery<a class=anchor href=#using-handler-discovery>#</a></h2><p>When using the static method approach (<code>getHandledCommands()</code> and <code>getSubscribedEvents()</code>), the boot process can
+discover and register handlers automatically:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#75715e>// List of all command handler classes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$commandHandlerClasses <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StudentCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>SubscriptionCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register command handlers using discovery
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>foreach</span> ($commandHandlerClasses <span style=color:#66d9ef>as</span> $handlerClass) {
+</span></span><span style=display:flex><span>    $commands <span style=color:#f92672>=</span> $handlerClass<span style=color:#f92672>::</span><span style=color:#a6e22e>getHandledCommands</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> ($commands <span style=color:#66d9ef>as</span> $commandClass) {
+</span></span><span style=display:flex><span>        $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>DispatcherInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>)<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>registerHandler</span>(
+</span></span><span style=display:flex><span>            $commandClass,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>HandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($handlerClass))
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// List of all event handler classes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$projectorClasses <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseListProjector</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StudentListProjector</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$processorClasses <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>NotificationProcessor</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>EmailProcessor</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register projectors using discovery
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>foreach</span> ($projectorClasses <span style=color:#66d9ef>as</span> $projectorClass) {
+</span></span><span style=display:flex><span>    $events <span style=color:#f92672>=</span> $projectorClass<span style=color:#f92672>::</span><span style=color:#a6e22e>getSubscribedEvents</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> ($events <span style=color:#66d9ef>as</span> $eventClass) {
+</span></span><span style=display:flex><span>        $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventBusInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>)<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(
+</span></span><span style=display:flex><span>            $eventClass,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventHandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($projectorClass))
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register processors (skip during projection rebuilds)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$isRebuildMode <span style=color:#f92672>=</span> (<span style=color:#a6e22e>bool</span>) <span style=color:#a6e22e>getenv</span>(<span style=color:#e6db74>&#39;REBUILD_PROJECTIONS&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>$isRebuildMode) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> ($processorClasses <span style=color:#66d9ef>as</span> $processorClass) {
+</span></span><span style=display:flex><span>        $events <span style=color:#f92672>=</span> $processorClass<span style=color:#f92672>::</span><span style=color:#a6e22e>getSubscribedEvents</span>();
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>foreach</span> ($events <span style=color:#66d9ef>as</span> $eventClass) {
+</span></span><span style=display:flex><span>            $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventBusInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>)<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(
+</span></span><span style=display:flex><span>                $eventClass,
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventHandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($processorClass))
+</span></span><span style=display:flex><span>            );
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>This discovery approach requires maintaining only a list of handler classes rather than complete mappings, reducing
+duplication since each handler already declares what it handles.</p><h2 id=using-handlerproxy-and-eventhandlerproxy>Using HandlerProxy and EventHandlerProxy<a class=anchor href=#using-handlerproxy-and-eventhandlerproxy>#</a></h2><p>Backslash provides proxy classes that defer handler instantiation:</p><p><strong>HandlerProxy</strong> for command handlers:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\HandlerProxy</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$dispatcher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>registerHandler</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>DefineCourseCommand</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>HandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>CourseCommandHandler</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>))
+</span></span><span style=display:flex><span>);</span></span></code></pre></td></tr></table></div></div><p><strong>EventHandlerProxy</strong> for event handlers:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventBus\EventHandlerProxy</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventHandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>CourseListProjector</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>))
+</span></span><span style=display:flex><span>);</span></span></code></pre></td></tr></table></div></div><p>These proxies defer handler instantiation until they&rsquo;re actually needed.</p><h2 id=registering-command-handlers>Registering command handlers<a class=anchor href=#registering-command-handlers>#</a></h2><p>The boot process registers command handlers with the dispatcher:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\DispatcherInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\HandlerProxy</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#e6db74>/** @var DispatcherInterface $dispatcher */</span>
+</span></span><span style=display:flex><span>$dispatcher <span style=color:#f92672>=</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>DispatcherInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>foreach</span> (<span style=color:#a6e22e>COMMAND_HANDLERS</span> <span style=color:#66d9ef>as</span> $handlerClass <span style=color:#f92672>=&gt;</span> $commandClasses) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> ($commandClasses <span style=color:#66d9ef>as</span> $commandClass) {
+</span></span><span style=display:flex><span>        $dispatcher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>registerHandler</span>(
+</span></span><span style=display:flex><span>            $commandClass,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>HandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($handlerClass))
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>This registration happens during boot, before dispatching any commands.</p><h2 id=registering-event-handlers>Registering event handlers<a class=anchor href=#registering-event-handlers>#</a></h2><p>The boot process registers event handlers with the event bus:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventBus\EventBusInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventBus\EventHandlerProxy</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#e6db74>/** @var EventBusInterface $eventBus */</span>
+</span></span><span style=display:flex><span>$eventBus <span style=color:#f92672>=</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventBusInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register projectors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>foreach</span> (<span style=color:#a6e22e>PROJECTORS</span> <span style=color:#66d9ef>as</span> $projectorClass <span style=color:#f92672>=&gt;</span> $eventClasses) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> ($eventClasses <span style=color:#66d9ef>as</span> $eventClass) {
+</span></span><span style=display:flex><span>        $eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(
+</span></span><span style=display:flex><span>            $eventClass,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventHandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($projectorClass))
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register processors (skip during projection rebuilds)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$isRebuildMode <span style=color:#f92672>=</span> (<span style=color:#a6e22e>bool</span>) <span style=color:#a6e22e>getenv</span>(<span style=color:#e6db74>&#39;REBUILD_PROJECTIONS&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>$isRebuildMode) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>foreach</span> (<span style=color:#a6e22e>PROCESSORS</span> <span style=color:#66d9ef>as</span> $processorClass <span style=color:#f92672>=&gt;</span> $eventClasses) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>foreach</span> ($eventClasses <span style=color:#66d9ef>as</span> $eventClass) {
+</span></span><span style=display:flex><span>            $eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(
+</span></span><span style=display:flex><span>                $eventClass,
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventHandlerProxy</span>(<span style=color:#a6e22e>fn</span> () <span style=color:#f92672>=&gt;</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>($processorClass))
+</span></span><span style=display:flex><span>            );
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}</span></span></code></pre></td></tr></table></div></div><p>The application determines whether it&rsquo;s in rebuild mode (typically using an environment variable like
+<code>REBUILD_PROJECTIONS</code>). During projection rebuilds, processors are not registered to avoid triggering side effects like
+sending duplicate notifications or making external API calls.</p><hr></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div></div><div></div></div><div class="flex flex-wrap justify-between"><span><a href=/backslash/application-setup/defining-services/ class="flex align-center"><img src=/backslash/icons/backward.svg class=book-icon alt=Previous title="Defining Services">
+<span>Defining Services</span>
+</a></span><span><a href=/backslash/application-setup/using-the-bootstrap-file/ class="flex align-center"><span>Using the Bootstrap File</span>
+<img src=/backslash/icons/forward.svg class=book-icon alt=Next title="Using the Bootstrap File"></a></span></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#understanding-the-boot-process>Understanding the boot process</a></li><li><a href=#defining-command-handler-mappings>Defining command handler mappings</a></li><li><a href=#defining-event-handler-mappings>Defining event handler mappings</a></li><li><a href=#using-handler-discovery>Using handler discovery</a></li><li><a href=#using-handlerproxy-and-eventhandlerproxy>Using HandlerProxy and EventHandlerProxy</a></li><li><a href=#registering-command-handlers>Registering command handlers</a></li><li><a href=#registering-event-handlers>Registering event handlers</a></li></ul></nav></div></aside></main></body></html>

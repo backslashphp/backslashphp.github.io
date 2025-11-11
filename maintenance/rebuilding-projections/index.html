@@ -1,0 +1,395 @@
+<!doctype html><html lang=en-ca dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Rebuilding Projections#
+Rebuilding projections is a routine task in event-sourced applications. This capability allows you to reconstruct read
+models from scratch by replaying the complete event history.
+Backslash does not provide a built-in component specifically for rebuilding projections; each application has unique
+requirements and should implement rebuilding according to its specific needs. However, Backslash provides essential
+tools that facilitate the rebuild process, such as the Inspector for replaying events, the ProjectionStore for
+managing projection lifecycle, and the EventBus for routing events to projectors."><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://backslashphp.github.io/backslash/maintenance/rebuilding-projections/"><meta property="og:site_name" content="Backslash PHP Developer Guide"><meta property="og:title" content="Rebuilding Projections"><meta property="og:description" content="Rebuilding Projections# Rebuilding projections is a routine task in event-sourced applications. This capability allows you to reconstruct read models from scratch by replaying the complete event history.
+Backslash does not provide a built-in component specifically for rebuilding projections; each application has unique requirements and should implement rebuilding according to its specific needs. However, Backslash provides essential tools that facilitate the rebuild process, such as the Inspector for replaying events, the ProjectionStore for managing projection lifecycle, and the EventBus for routing events to projectors."><meta property="og:locale" content="en_ca"><meta property="og:type" content="article"><meta property="article:section" content="maintenance"><meta property="article:modified_time" content="2025-11-11T17:09:05-05:00"><title>Rebuilding Projections | Backslash PHP Developer Guide</title><link rel=icon href=/backslash/favicon.png><link rel=manifest href=/backslash/manifest.json><link rel=canonical href=https://backslashphp.github.io/backslash/maintenance/rebuilding-projections/><link rel=stylesheet href=/backslash/book.min.c0e41de750417a94c4724981669dbe7955cfa422e1b2a84d4d2ac5e7d4a300f2.css integrity="sha256-wOQd51BBepTEckmBZp2+eVXPpCLhsqhNTSrF59SjAPI=" crossorigin=anonymous><script defer src=/backslash/fuse.min.js></script><script defer src=/backslash/en.search.min.bf5cf25dfd21948ac026e92ebfbb526af7dc35e848feb1e5549f4f2ff0904a2c.js integrity="sha256-v1zyXf0hlIrAJukuv7tSavfcNehI/rHlVJ9PL/CQSiw=" crossorigin=anonymous></script></head><body dir=ltr class="book-kind-page book-type-maintenance"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/backslash/><span>Backslash PHP Developer Guide</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=https://github.com/backslashphp/backslash target=_blank rel=noopener>Source code</a></li><li><a href=https://github.com/backslashphp/demo target=_blank rel=noopener>Demo application</a></li></ul><ul><li class=book-section-flat><a>Getting Started</a><ul><li><a href=/backslash/getting-started/introduction/>Introduction</a></li><li><a href=/backslash/getting-started/architecture-overview/>Architecture Overview</a></li><li><a href=/backslash/getting-started/quick-start-guide/>Quick Start Guide</a></li></ul></li><li class=book-section-flat><a>Event Sourcing</a><ul><li><a href=/backslash/event-sourcing/understanding-event-sourcing/>Understanding Event Sourcing</a></li><li><a href=/backslash/event-sourcing/defining-events/>Defining Events</a></li><li><a href=/backslash/event-sourcing/querying-events/>Querying Events</a></li><li><a href=/backslash/event-sourcing/building-models/>Building Models</a></li></ul></li><li class=book-section-flat><a>Commands and Projections (CQRS)</a><ul><li><a href=/backslash/cqrs/understanding-cqrs/>Understanding CQRS</a></li><li><a href=/backslash/cqrs/dispatching-commands/>Dispatching Commands</a></li><li><a href=/backslash/cqrs/reacting-with-event-handlers/>Reacting with Event Handlers</a></li><li><a href=/backslash/cqrs/building-projections/>Building Projections</a></li></ul></li><li class=book-section-flat><a>Testing Your Application</a><ul><li><a href=/backslash/testing/setting-up-tests/>Setting Up Tests</a></li><li><a href=/backslash/testing/writing-test-scenarios/>Writing Test Scenarios</a></li></ul></li><li class=book-section-flat><a>Customization</a><ul><li><a href=/backslash/customization/extending-with-middleware/>Extending with Middleware</a></li><li><a href=/backslash/customization/enriching-event-streams/>Enriching Event Streams</a></li></ul></li><li class=book-section-flat><a>Application Setup</a><ul><li><a href=/backslash/application-setup/defining-services/>Defining Services</a></li><li><a href=/backslash/application-setup/registering-handlers/>Registering Handlers</a></li><li><a href=/backslash/application-setup/using-the-bootstrap-file/>Using the Bootstrap File</a></li></ul></li><li class=book-section-flat><a>Maintenance</a><ul><li><a href=/backslash/maintenance/rebuilding-projections/ class=active>Rebuilding Projections</a></li></ul></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/backslash/icons/menu.svg class=book-icon alt=Menu></label><h3>Rebuilding Projections</h3><label for=toc-control><img src=/backslash/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#understanding-when-to-rebuild>Understanding when to rebuild</a></li><li><a href=#treating-projections-as-disposable>Treating projections as disposable</a></li><li><a href=#distinguishing-projectors-from-processors>Distinguishing projectors from processors</a></li><li><a href=#understanding-eventstore-and-inspector>Understanding EventStore and Inspector</a></li><li><a href=#filtering-events-during-replay>Filtering events during replay</a></li><li><a href=#tracking-rebuild-progress>Tracking rebuild progress</a></li><li><a href=#the-serial-rebuild-process>The serial rebuild process</a></li><li><a href=#disabling-stream-enrichment>Disabling stream enrichment</a></li><li><a href=#implementing-parallel-rebuilds>Implementing parallel rebuilds</a></li><li><a href=#filtering-events-for-parallel-rebuilds>Filtering events for parallel rebuilds</a></li><li><a href=#best-practices>Best practices</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=rebuilding-projections>Rebuilding Projections<a class=anchor href=#rebuilding-projections>#</a></h1><p>Rebuilding projections is a routine task in event-sourced applications. This capability allows you to reconstruct read
+models from scratch by replaying the complete event history.</p><p>Backslash does not provide a built-in component specifically for rebuilding projections; each application has unique
+requirements and should implement rebuilding according to its specific needs. However, Backslash provides essential
+tools that facilitate the rebuild process, such as the <code>Inspector</code> for replaying events, the <code>ProjectionStore</code> for
+managing projection lifecycle, and the <code>EventBus</code> for routing events to projectors.</p><h2 id=understanding-when-to-rebuild>Understanding when to rebuild<a class=anchor href=#understanding-when-to-rebuild>#</a></h2><p>Rebuild projections when:</p><ul><li><strong>Creating new projections</strong>: New read models need historical data from existing events</li><li><strong>Modifying projection logic</strong>: Changes to how projections interpret events require rebuilding with the updated logic</li><li><strong>Optimizing projection structure</strong>: Performance improvements or schema changes necessitate reconstruction</li><li><strong>Fixing projection bugs</strong>: Corrected projector logic must be applied to all historical events</li><li><strong>Migrating projection storage</strong>: Moving projections to different storage systems requires rebuilding in the new
+location</li></ul><h2 id=treating-projections-as-disposable>Treating projections as disposable<a class=anchor href=#treating-projections-as-disposable>#</a></h2><p>Because events are the source of truth, projections are disposable and easily reconstructed. Events represent what
+actually happened in your system; projections are merely interpretations of those events. While projections may
+occasionally contain errors due to bugs in projector logic, events always tell the truth.</p><p>This fundamental principle means you can confidently delete and rebuild projections whenever needed. The ability to
+rebuild projections is what makes CQRS practical for evolving systems.</p><h2 id=distinguishing-projectors-from-processors>Distinguishing projectors from processors<a class=anchor href=#distinguishing-projectors-from-processors>#</a></h2><p>Before rebuilding, understand the critical difference between two types of event handlers:</p><p><strong>Projectors</strong> update projections by reading events and storing read models. They are idempotent and side-effect-free
+beyond projection updates. Examples include:</p><ul><li>Building course lists from <code>CourseDefinedEvent</code></li><li>Updating student enrollments from <code>StudentSubscribedToCourseEvent</code></li><li>Maintaining dashboard metrics from various events</li></ul><p><strong>Processors</strong> trigger side effects like sending notifications, calling external APIs, or publishing to message queues.
+They should not execute during rebuilds. Examples include:</p><ul><li>Sending confirmation emails when students subscribe to courses</li><li>Notifying external systems of state changes</li><li>Publishing events to message brokers</li></ul><p>During rebuilds, register only projectors; never register processors. Processors should execute only once when events
+first occur, not during historical replays.</p><h2 id=understanding-eventstore-and-inspector>Understanding EventStore and Inspector<a class=anchor href=#understanding-eventstore-and-inspector>#</a></h2><p>Normal operations use the <code>Repository</code> to load models and persist changes. Rebuilding requires direct access to the
+<code>EventStore</code> and <code>EventBus</code> using the <code>Inspector</code> component.</p><p>The <code>EventStore</code> provides an append-only, queryable log of all events. The <code>Inspector</code> iterates through stored events
+and publishes them to the <code>EventBus</code>:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\StreamPublishingInspection\Inspector</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$inspector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Inspector</span>($eventBus);
+</span></span><span style=display:flex><span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>inspect</span>($inspector);</span></span></code></pre></td></tr></table></div></div><p>This replays every event in the EventStore, triggering all registered event handlers as if the events were just
+published.</p><h2 id=filtering-events-during-replay>Filtering events during replay<a class=anchor href=#filtering-events-during-replay>#</a></h2><p>The <code>Inspector</code> optionally accepts a <code>Query</code> as its second constructor argument to retrieve only a subset of events from
+the EventStore. This is particularly useful when rebuilding a single projector; you can pass a query that selects only
+events relevant to that projector:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\StreamPublishingInspection\Inspector</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventStore\Query\EventClass</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Define which events the projector needs
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$relevantEvents <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>CourseCapacityChangedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Create a query filtering for these events only
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$query <span style=color:#f92672>=</span> <span style=color:#a6e22e>EventClass</span><span style=color:#f92672>::</span><span style=color:#a6e22e>in</span>($relevantEvents);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Inspector will only replay these specific events
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$inspector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Inspector</span>($eventBus, $query);
+</span></span><span style=display:flex><span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>inspect</span>($inspector);</span></span></code></pre></td></tr></table></div></div><p>Without a query parameter, the <code>Inspector</code> replays all events in the EventStore. When rebuilding all projections, omit
+the query; when rebuilding specific projections, use <code>EventClass::in()</code> to filter for only the necessary events.</p><h2 id=tracking-rebuild-progress>Tracking rebuild progress<a class=anchor href=#tracking-rebuild-progress>#</a></h2><p>The <code>Inspector</code> optionally accepts third and fourth constructor arguments as closures for tracking rebuild progress. The
+first closure executes before dispatching each event to the EventBus; the second executes after dispatch:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span>$eventCount <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>$totalEvents <span style=color:#f92672>=</span> $eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>count</span>(); <span style=color:#75715e>// Hypothetical method
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>$beforeDispatch <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>RecordedEvent</span> $recordedEvent) <span style=color:#66d9ef>use</span> (<span style=color:#f92672>&amp;</span>$eventCount, $totalEvents) {
+</span></span><span style=display:flex><span>    $eventCount<span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>echo</span> <span style=color:#a6e22e>sprintf</span>(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Processing event %d/%d: %s</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>,
+</span></span><span style=display:flex><span>        $eventCount,
+</span></span><span style=display:flex><span>        $totalEvents,
+</span></span><span style=display:flex><span>        $recordedEvent<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>getEvent</span>()<span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$afterDispatch <span style=color:#f92672>=</span> <span style=color:#66d9ef>function</span> (<span style=color:#a6e22e>RecordedEvent</span> $recordedEvent) {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Log completion, update progress bar, etc.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$inspector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Inspector</span>($eventBus, $query, $beforeDispatch, $afterDispatch);
+</span></span><span style=display:flex><span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>inspect</span>($inspector);</span></span></code></pre></td></tr></table></div></div><p>These callbacks are particularly useful for outputting progress to the console, calculating completion percentages, or
+logging rebuild metrics.</p><hr><h2 id=the-serial-rebuild-process>The serial rebuild process<a class=anchor href=#the-serial-rebuild-process>#</a></h2><p>Rebuilding follows these steps:</p><ol><li><strong>Bootstrap the application</strong> with only projectors registered; exclude all processors to prevent side effects</li><li><strong>Delete existing projections</strong> by calling <code>purge()</code> on the <code>ProjectionStore</code></li><li><strong>Disable stream enricher</strong> if your application uses one; metadata enrichment must not occur during replays</li><li><strong>Load all events chronologically</strong> from the EventStore and publish them to the EventBus using Inspector</li><li><strong>Commit rebuilt projections</strong> by calling <code>commit()</code> on the ProjectionStore</li></ol><p>The serial approach processes events sequentially, looping through all events one after the other in a single PHP
+process. Here&rsquo;s a complete serial rebuild implementation:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#f92672>&lt;?</span><span style=color:#a6e22e>php</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>declare</span>(<span style=color:#a6e22e>strict_types</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\CommandDispatcher\DispatcherInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventBus\EventBusInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventStore\EventStoreInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\ProjectionStore\ProjectionStoreInterface</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\StreamPublishingInspection\Inspector</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Demo\UI\Projection\CourseList\CourseListProjector</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Demo\UI\Projection\StudentList\StudentListProjector</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Psr\Container\ContainerInterface</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#e6db74>/** @var ContainerInterface $container */</span>
+</span></span><span style=display:flex><span>$container <span style=color:#f92672>=</span> <span style=color:#66d9ef>require</span> <span style=color:#66d9ef>__DIR__</span> <span style=color:#f92672>.</span> <span style=color:#e6db74>&#39;/../bootstrap.php&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#e6db74>/** @var EventStoreInterface $eventStore */</span>
+</span></span><span style=display:flex><span>$eventStore <span style=color:#f92672>=</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>EventStoreInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#e6db74>/** @var ProjectionStoreInterface $projectionStore */</span>
+</span></span><span style=display:flex><span>$projectionStore <span style=color:#f92672>=</span> $container<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>get</span>(<span style=color:#a6e22e>ProjectionStoreInterface</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Create a dedicated EventBus with only projectors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$eventBus <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventBus</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Register projectors (not processors)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$courseListProjector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>CourseListProjector</span>($projectionStore);
+</span></span><span style=display:flex><span>$studentListProjector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StudentListProjector</span>($projectionStore);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $courseListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>CourseCapacityChangedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $courseListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $courseListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $courseListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentRegisteredEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $courseListProjector);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $studentListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentRegisteredEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $studentListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $studentListProjector);
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>(<span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>, $studentListProjector);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Step 1: Purge existing projections
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$projectionStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>purge</span>();
+</span></span><span style=display:flex><span>$projectionStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>commit</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>echo</span> <span style=color:#e6db74>&#34;Purged existing projections</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Step 2: Replay all events
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$inspector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Inspector</span>($eventBus);
+</span></span><span style=display:flex><span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>inspect</span>($inspector);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>echo</span> <span style=color:#e6db74>&#34;Replayed all events</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Step 3: Commit rebuilt projections
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$projectionStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>commit</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>echo</span> <span style=color:#e6db74>&#34;Rebuild complete</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>;</span></span></code></pre></td></tr></table></div></div><p>This serial approach is effective for getting started but processes events sequentially in a single PHP process.</p><h2 id=disabling-stream-enrichment>Disabling stream enrichment<a class=anchor href=#disabling-stream-enrichment>#</a></h2><p>If your application uses a stream enricher, disable it during rebuilds to prevent metadata enrichment. Stream enrichers
+typically add contextual information like user IDs, tenant identifiers, or correlation IDs to events as they occur.</p><p>During rebuilds, you&rsquo;re replaying historical events that already contain their original metadata. Re-enriching them
+would:</p><ul><li>Add incorrect contextual data from the rebuild process rather than the original context</li><li>Potentially modify event metadata in unintended ways</li><li>Cause unnecessary processing overhead</li></ul><p>Disable enrichment by not registering the enricher middleware when bootstrapping your rebuild script:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#75715e>// Normal application bootstrap registers enricher middleware
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>addMiddleware</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StreamEnricherEventStoreMiddleware</span>($enricher));
+</span></span><span style=display:flex><span>$eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>addMiddleware</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StreamEnricherEventBusMiddleware</span>($enricher));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Rebuild script omits enricher middleware entirely
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// Just use EventStore and EventBus without enricher middleware
+</span></span></span></code></pre></td></tr></table></div></div><p>Alternatively, implement methods like <code>enable()</code> and <code>disable()</code> on your stream enricher to toggle activation:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>StreamEnricher</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>StreamEnricherInterface</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>bool</span> $enabled <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>enable</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>enabled</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>disable</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>void</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        $this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>enabled</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>enrich</span>(<span style=color:#a6e22e>EventStreamInterface</span> $stream)<span style=color:#f92672>:</span> <span style=color:#a6e22e>EventStreamInterface</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>$this<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>enabled</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> $stream;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Enrichment logic here
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// In rebuild script
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$enricher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>disable</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// After rebuild
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$enricher<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>enable</span>();</span></span></code></pre></td></tr></table></div></div><p>This approach allows you to keep the enricher middleware registered while controlling when enrichment occurs.</p><h2 id=implementing-parallel-rebuilds>Implementing parallel rebuilds<a class=anchor href=#implementing-parallel-rebuilds>#</a></h2><p>For large event stores, parallel rebuilding improves performance by running each projector in a separate PHP process.
+This approach reduces memory consumption and CPU usage by distributing work across multiple workers.</p><p>One suggested parallel rebuild strategy involves two scripts:</p><p><strong>Main coordinator script</strong> that:</p><ul><li>Deletes all existing projections</li><li>Loops through all projectors</li><li>Launches a background process for each projector, passing the projector class name as an argument</li><li>Waits for all background processes to complete</li></ul><p><strong>Worker script</strong> that:</p><ul><li>Receives the projector class name as an argument</li><li>Determines which events the projector is interested in</li><li>Creates a query filtering for those specific events using <code>EventClass::in()</code></li><li>Uses the <code>Inspector</code> with this query to replay only the relevant events</li><li>Creates a dedicated EventBus and registers only that projector</li><li>Instructs the EventStore to inspect using the filtered Inspector</li><li>Commits the rebuilt projections for that projector only</li></ul><p>This approach allows each projector to process only its relevant events independently, enabling true parallel execution
+where multiple projectors rebuild simultaneously in separate PHP processes.</p><p>Each worker performs its own <code>commit()</code>, ensuring that projections are persisted independently.</p><p><strong>Important</strong>: This parallel method requires projectors to be fully autonomous. Projectors must not depend on
+projections built by other projectors, as those projections may not be available when needed during concurrent
+execution. Each projector should derive all necessary information solely from events. When projectors are autonomous,
+there is no risk of conflicts between workers since each projector manages distinct projections.</p><hr><h2 id=filtering-events-for-parallel-rebuilds>Filtering events for parallel rebuilds<a class=anchor href=#filtering-events-for-parallel-rebuilds>#</a></h2><p>When implementing the worker script, use the <code>Inspector</code> with a query to replay only events relevant to the specific
+projector. Adding a static method to each projector that returns its subscribed events simplifies worker scripts and
+centralizes event subscription knowledge:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CourseListProjector</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>EventHandlerInterface</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>use</span> <span style=color:#a6e22e>EventHandlerTrait</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSubscribedEvents</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>array</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>CourseDefinedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>CourseCapacityChangedEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>StudentSubscribedToCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>StudentUnsubscribedFromCourseEvent</span><span style=color:#f92672>::</span><span style=color:#a6e22e>class</span>,
+</span></span><span style=display:flex><span>        ];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Handler methods...
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}</span></span></code></pre></td></tr></table></div></div><p>The worker script can then call this method to determine which events to load:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-php data-lang=php><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\EventStore\Query\EventClass</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> <span style=color:#a6e22e>Backslash\StreamPublishingInspection\Inspector</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Worker receives projector class name as argument
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$projectorClass <span style=color:#f92672>=</span> $argv[<span style=color:#ae81ff>1</span>]; <span style=color:#75715e>// e.g., CourseListProjector::class
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Get subscribed events from projector
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$eventClasses <span style=color:#f92672>=</span> $projectorClass<span style=color:#f92672>::</span><span style=color:#a6e22e>getSubscribedEvents</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Create query to filter for relevant events only
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$query <span style=color:#f92672>=</span> <span style=color:#a6e22e>EventClass</span><span style=color:#f92672>::</span><span style=color:#a6e22e>in</span>($eventClasses);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Create and register projector
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$eventBus <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>EventBus</span>();
+</span></span><span style=display:flex><span>$projector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> $projectorClass($projectionStore);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>foreach</span> ($eventClasses <span style=color:#66d9ef>as</span> $eventClass) {
+</span></span><span style=display:flex><span>    $eventBus<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>subscribe</span>($eventClass, $projector);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Create Inspector with the filtering query
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$inspector <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Inspector</span>($eventBus, $query);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Replay only the filtered events
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$eventStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>inspect</span>($inspector);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Commit the rebuilt projections
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>$projectionStore<span style=color:#f92672>-&gt;</span><span style=color:#a6e22e>commit</span>();</span></span></code></pre></td></tr></table></div></div><p>This pattern ensures each worker processes only its necessary events, avoiding unnecessary event handling and improving
+rebuild performance. The <code>Inspector</code> with the query guarantees that only relevant events are replayed through the
+EventBus.</p><hr><h2 id=best-practices>Best practices<a class=anchor href=#best-practices>#</a></h2><p><strong>Make the application unavailable during rebuilds.</strong> The application should not be accessible while rebuilding
+projections to prevent inconsistent reads and potential data corruption. For live rebuilds without downtime, rebuild
+projections in separate storage and ensure new events created during the rebuild are processed after completion; this
+requires careful orchestration and is beyond the scope of basic rebuilds.</p><p><strong>Separate projectors from processors.</strong> Maintain clear boundaries between event handlers that update projections and
+those that trigger side effects; this separation is essential for safe rebuilds.</p><p><strong>Test rebuild logic before production.</strong> Verify your rebuild implementation works correctly on a copy of production
+data before executing against live projections.</p><p><strong>Schedule rebuilds during maintenance windows.</strong> Rebuilding can be resource-intensive for large event stores; schedule
+rebuilds during low-traffic periods to minimize impact.</p><p><strong>Monitor rebuild progress.</strong> For large event stores, add logging to track rebuild progress and identify potential
+issues early; consider logging after every N events processed.</p><p><strong>Use selective rebuilds when possible.</strong> Rebuild only affected projections rather than all projections to save time and
+resources; create temporary EventBus instances with only the necessary projectors.</p><p><strong>Consider parallel rebuilds for scale.</strong> As your event store grows, parallel rebuilds become increasingly valuable for
+reducing rebuild time and resource consumption.</p><p><strong>Backup before rebuilding.</strong> Consider backing up projection data before rebuilding in case you need to roll back; this
+is especially important for production systems.</p><p><strong>Keep projectors idempotent.</strong> Design projectors to produce the same result regardless of how many times events are
+replayed; this ensures reliable rebuilding and recovery.</p><p><strong>Document your rebuild process.</strong> Maintain clear documentation of your rebuild procedures, including when to rebuild,
+how to execute rebuilds, and expected duration for different projection sets.</p></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div></div><div></div></div><div class="flex flex-wrap justify-between"><span><a href=/backslash/application-setup/using-the-bootstrap-file/ class="flex align-center"><img src=/backslash/icons/backward.svg class=book-icon alt=Previous title="Using the Bootstrap File">
+<span>Using the Bootstrap File</span>
+</a></span><span></span></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#understanding-when-to-rebuild>Understanding when to rebuild</a></li><li><a href=#treating-projections-as-disposable>Treating projections as disposable</a></li><li><a href=#distinguishing-projectors-from-processors>Distinguishing projectors from processors</a></li><li><a href=#understanding-eventstore-and-inspector>Understanding EventStore and Inspector</a></li><li><a href=#filtering-events-during-replay>Filtering events during replay</a></li><li><a href=#tracking-rebuild-progress>Tracking rebuild progress</a></li><li><a href=#the-serial-rebuild-process>The serial rebuild process</a></li><li><a href=#disabling-stream-enrichment>Disabling stream enrichment</a></li><li><a href=#implementing-parallel-rebuilds>Implementing parallel rebuilds</a></li><li><a href=#filtering-events-for-parallel-rebuilds>Filtering events for parallel rebuilds</a></li><li><a href=#best-practices>Best practices</a></li></ul></nav></div></aside></main></body></html>

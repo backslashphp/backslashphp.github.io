@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Customization on Backslash PHP Developer Guide</title><link>https://backslashphp.github.io/backslash/customization/</link><description>Recent content in Customization on Backslash PHP Developer Guide</description><generator>Hugo</generator><language>en-ca</language><atom:link href="https://backslashphp.github.io/backslash/customization/index.xml" rel="self" type="application/rss+xml"/><item><title>Extending with Middleware</title><link>https://backslashphp.github.io/backslash/customization/extending-with-middleware/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/customization/extending-with-middleware/</guid><description>&lt;h1 id="extending-with-middleware"&gt;Extending with Middleware&lt;a class="anchor" href="#extending-with-middleware"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Middleware provides a powerful way to add cross-cutting concerns to Backslash components. It follows an onion layer
+model, allowing logic to be executed before and after core operations.&lt;/p&gt;
+&lt;h2 id="understanding-middleware"&gt;Understanding middleware&lt;a class="anchor" href="#understanding-middleware"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Middleware wraps component operations in layers. Each middleware can:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Execute logic before delegating to the next layer&lt;/li&gt;
+&lt;li&gt;Execute logic after the next layer completes&lt;/li&gt;
+&lt;li&gt;Transform inputs or outputs&lt;/li&gt;
+&lt;li&gt;Handle errors or side effects&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The onion layer model ensures symmetric execution:&lt;/p&gt;</description></item><item><title>Enriching Event Streams</title><link>https://backslashphp.github.io/backslash/customization/enriching-event-streams/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://backslashphp.github.io/backslash/customization/enriching-event-streams/</guid><description>&lt;h1 id="enriching-event-streams"&gt;Enriching Event Streams&lt;a class="anchor" href="#enriching-event-streams"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Event stream enrichment allows applications to inject metadata into events as they flow through the system. This
+metadata provides contextual information like the current tenant, authenticated user, or correlation keys.&lt;/p&gt;
+&lt;p&gt;Enrichment occurs after the model records events but before they are persisted to EventStore or published to EventBus.&lt;/p&gt;
+&lt;h2 id="understanding-stream-enrichment"&gt;Understanding stream enrichment&lt;a class="anchor" href="#understanding-stream-enrichment"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;An application should have a single implementation of &lt;code&gt;StreamEnricherInterface&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-php" data-lang="php"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;interface&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;StreamEnricherInterface&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;public&lt;/span&gt; &lt;span style="color:#66d9ef"&gt;function&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;enrich&lt;/span&gt;(&lt;span style="color:#a6e22e"&gt;RecordedEventStream&lt;/span&gt; $stream)&lt;span style="color:#f92672"&gt;:&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;RecordedEventStream&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Using a single enricher avoids metadata conflicts, ensures predictable execution order, and simplifies configuration.
+The enricher&amp;rsquo;s role is to inject metadata into events. This implementation can receive services as dependencies when
+contextual information is needed. Common metadata includes:&lt;/p&gt;</description></item></channel></rss>
